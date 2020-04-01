@@ -16,7 +16,10 @@ public:
         cin>>str;
         this->ch=str;
     }
-    explicit Natur(string i): ch(move(i)){};
+    void init(string str){  //получение числа
+        this->ch=str;
+    }
+    explicit Natur(string i="0"): ch(move(i)){};
     string get(){
         return this->ch;
     }
@@ -24,17 +27,32 @@ public:
     {
         return this->get().length();
     }
-    friend const Natur operator+(const Natur& left, const Natur& right);
+    friend Natur operator+(Natur& left, Natur& right);
 };
-const Natur operator+(const Natur& left, const Natur& right){
-    string res;
-    int n=0;
-
-
-
-
-
-    
+Natur operator+(Natur& left,Natur& right){
+    string res,res2;
+    Natur max;
+    int n=0,min;
+    if (left.size()<right.size()) {min=left.size(); max=right;} else {min=right.size(); max=left;}
+    for (int i=1;i<=min; i++)
+    {
+        n+=(int)(left.get()[left.size()-i]-'0')+(int)(right.get()[right.size()-i]-'0');
+        res+=(char)(n%10+'0');
+       // cout<<res<<'\n'; //debug
+        n/=10;
+    }
+    for (int i=min+1;i<=max.size(); i++)
+    {
+        n+=(int)(max.get()[max.size()-i]-'0');
+        res+=(char)(n%10+'0');
+       // cout<<res<<'\n'; //debug
+        n/=10;
+    }
+    if (n!=0) res+=(char)(n%10+'0');
+    for (int i=0;i<res.length();i++)
+        res2+=res[res.length()-1-i];
+    max.init(res2);
+    return max;
 }
 /*
  * Дополнительные функции
@@ -58,10 +76,15 @@ int NZER_N_B(Natur a) //0 if ==0, 1 if !=0
 {
     if (a.get()[0]=='0' && a.size()==1) return 0; else return 1;
 }
+string ADD_1N_N(Natur a){
+    Natur a2("1");
+    return (a+a2).get();
+}
 int naturalis() //работаем с натуральными
 {
     Natur n1, n2;
     int res, isOk;
+    string resStr;
     cout<<"Введите два натуральных числа";
     n1.init(); n2.init();
     int funkType;
@@ -75,8 +98,8 @@ int naturalis() //работаем с натуральными
         case 2: cout<<"Какое число сравниваем: 1е или 2е? (Введите цифру)\n";  cin>>res;
         if (res==1) res=NZER_N_B(n1); else if (res==2) res=NZER_N_B(n2); else return error(1);
         if (res==1) cout<<"Число не является нулём\n"; else cout<<"Число является нулём\n"; break;
-        case 3: out<<"Какое число сравниваем: 1е или 2е? (Введите цифру)\n";  cin>>res;
-            if (res==1) res=ADD_1N_N(n1); else if (res==2) res=ADD_1N_N(n2); else return error(1);  cout<<"Получилось число"<<res<<'\n'; break;
+        case 3: cout<<"Какое число сравниваем: 1е или 2е? (Введите цифру)\n";  cin>>res;
+            if (res==1) resStr=ADD_1N_N(n1); else if (res==2) resStr=ADD_1N_N(n2); else return error(1);  cout<<"Получилось число "<<resStr<<'\n'; break;
         default: return error(1);
     }
     return 0;
