@@ -29,7 +29,10 @@ public:
     }
     friend Natur operator+(Natur& left, Natur& right);
     friend Natur operator-(Natur& left, Natur& right);
+    friend Natur operator*(Natur& left, Natur& right);
     friend int COM_NN_D(Natur a, Natur b);
+    friend string MUL_Nk_N(Natur a, int k);
+    friend string MUL_ND_N(Natur a, int b);
 };
 Natur operator+(Natur& left,Natur& right){
     string res,res2;
@@ -77,9 +80,22 @@ Natur operator-(Natur& left, Natur& right)
             rez += (char) ((10 + a[i] - '0') - (b[i-(a.size()-b.size())] - '0') + '0');
         } else rez += (char) ((a[i] - '0') - (b[i-(a.size()-b.size())] - '0') + '0');
     }
-    for (i=0;i<rez.length();i++) if (rez[i]=='0') rez.erase(i,1);
+    for (i=0; rez[i]!='0' ;i++) if (rez[i]=='0') rez.erase(i,1);
     res.init(rez);
     return res;
+}
+Natur operator*(Natur& left, Natur& right){
+    Natur helper;
+    Natur result;
+    result.init("0");
+    for (int i=0;i<right.size();i++)
+    {
+        helper.init(MUL_ND_N(left, right.get()[right.size()-1-i]-'0'));
+        //cout<<MUL_ND_N(left, right.get()[i]-'0')<<'\n';
+        helper.init(MUL_Nk_N(helper, i));
+        result=result+helper;
+    }
+    return result;
 }
 /*
  * Дополнительные функции
@@ -115,6 +131,7 @@ string SUB_NN_N(Natur a, Natur b){
 }
 string MUL_ND_N(Natur a, int b){
     string res="",rez="";
+    if (b==0) return "0";
     int x=0; //promejutochniy result
     for (int i=a.size()-1;i>=0;i--)
     {
@@ -122,7 +139,7 @@ string MUL_ND_N(Natur a, int b){
         res+=(char)(x%10+'0');
         x/=10;
     }
-    if (x!=0) res+=(char)(x+'0'); //result<=81 that's why it should work (c) yoi3.0
+    while (x!=0) {res+=(char)(x%10+'0'); x/=10;}; //result<=81 that's why it should work (c) yoi3.0
     for (int i=0;i<res.length();i++)
         rez+=res[res.length()-1-i];
     return rez;
@@ -132,6 +149,14 @@ string MUL_Nk_N(Natur a, int k)
     string res=a.get();
     for (int i=0;i<k;i++) res+='0';
     return res;
+}
+string MUL_NN_N(Natur a, Natur b){
+    return (a*b).get();
+}
+string SUB_NDN_N(Natur a, Natur b, int mnoj)
+{
+    a.init(MUL_ND_N(a, mnoj));
+    return (a-b).get();
 }
 int naturalis() //работаем с натуральными
 {
@@ -163,6 +188,12 @@ int naturalis() //работаем с натуральными
             if (cin.fail() || mnoj<0) return error(1);
             if (res==1) cout<<"Результат умножения "<<MUL_Nk_N(n1, mnoj)<<'\n';
             else if (res==2) cout<<"Результат умножения "<<MUL_Nk_N(n2, mnoj)<<'\n'; else return error(1); break;
+        case 8:  cout<<"Результат умножения "<<MUL_NN_N(n1, n2)<<'\n'; break;
+        case 9: cout<<"Какое число умножаем: 1е или 2е (Введите цифру)? Затем введите множитель (тип int)\n";  cin>>res; cin>>mnoj;
+            if (cin.fail() || mnoj<0) return error(1);
+            if (res==1) cout<<"Результат вычитания "<<SUB_NDN_N(n1, n2, mnoj)<<'\n';
+            else if (res==2) cout<<"Результат вычитания "<<SUB_NDN_N(n2, n1, mnoj)<<'\n'; else return error(1); break;
+        case 9:  cout<<"Первая цифра деления: "<<DIV_NN_Dk(n1, n2)<<'\n'; break; //ШТ ЗКЩПКУЫЫ
         default: return error(1);
     }
     return 0;
