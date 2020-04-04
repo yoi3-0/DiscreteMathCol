@@ -33,6 +33,9 @@ public:
     friend int COM_NN_D(Natur a, Natur b);
     friend string MUL_Nk_N(Natur a, int k);
     friend string MUL_ND_N(Natur a, int b);
+    friend string DIV_NN_Dk(Natur a, Natur b);
+    friend string MUL_NN_N(Natur a, Natur b);
+    friend string SUB_NN_N(Natur a, Natur b);
 };
 Natur operator+(Natur& left,Natur& right){
     string res,res2;
@@ -80,7 +83,7 @@ Natur operator-(Natur& left, Natur& right)
             rez += (char) ((10 + a[i] - '0') - (b[i-(a.size()-b.size())] - '0') + '0');
         } else rez += (char) ((a[i] - '0') - (b[i-(a.size()-b.size())] - '0') + '0');
     }
-    for (i=0; rez[i]!='0' ;i++) if (rez[i]=='0') rez.erase(i,1);
+    for (i=0; rez[i]=='0' ;)  rez.erase(i,1);
     res.init(rez);
     return res;
 }
@@ -96,6 +99,40 @@ Natur operator*(Natur& left, Natur& right){
         result=result+helper;
     }
     return result;
+}
+Natur operator/(Natur& left, Natur& right) {
+    Natur delim(left.get()), helper;
+    Natur result,init("0");
+    while (COM_NN_D(delim,right)==2)
+    {
+        helper.init(DIV_NN_Dk(delim, right)); //первая цифра деления на 10^k
+       // cout<<"Число="<<helper.get()<<'\n';
+        result = result + helper;
+      //  cout<<"Итог="<<result.get()<<'\n';
+        helper=right*helper; //умножение a*b
+      //  cout<<"делитель на частное="<<helper.get()<<'\n';
+        delim=delim-helper; //ычитание меньшего
+        //cout<<"Делимое="<<delim.get()<<'\n';
+        //321/10 => 321-100*3-10*2+1
+    }
+    return result;
+}
+Natur operator%(Natur& left, Natur& right) {
+    Natur delim(left.get()), helper;
+    Natur result,init("0");
+    while (COM_NN_D(delim,right)==2)
+    {
+        helper.init(DIV_NN_Dk(delim, right)); //первая цифра деления на 10^k
+       // cout<<"Число="<<helper.get()<<'\n';
+        result = result + helper;
+        // cout<<"Итог="<<result.get()<<'\n';
+        helper=right*helper; //умножение a*b
+       // cout<<"делитель на частное="<<helper.get()<<'\n';
+        delim=delim-helper; //ычитание меньшего
+       // cout<<"Делимое="<<delim.get()<<'\n';
+        //321/10 => 321-100*3-10*2+1
+    }
+    return delim;
 }
 /*
  * Дополнительные функции
@@ -158,12 +195,73 @@ string SUB_NDN_N(Natur a, Natur b, int mnoj)
     a.init(MUL_ND_N(a, mnoj));
     return (a-b).get();
 }
+string DIV_NN_Dk(Natur a, Natur b) {
+    string c = ""; int i = 0;
+    Natur Middle;
+    int x = COM_NN_D(a,b);
+    if (x == 2) {
+        if (NZER_N_B(b) == 0) return "Error";
+        if (a.get()[0]>b.get()[0]) for (i = 0; i < b.size(); i++) { c += a.get()[i]; }
+        else for (i = 0; i < b.size()+1; i++) { c += a.get()[i]; }
+        Middle.init(c);
+        x = a.size() - c.length();
+        i = 0;
+        while (COM_NN_D(Middle, b) != 1) {
+            Middle.init(SUB_NN_N(Middle, b));
+            i++;
+        }
+        c = (char)(i + '0');
+        Middle.init(c);
+        Middle.init(c = MUL_Nk_N(Middle, x));
+        return Middle.get();
+    }
+    else if (x == 1) {
+        if (NZER_N_B(a) == 0) return "Error";
+        if (b.get()[0] > a.get()[0]) for (i = 0; i < a.size(); i++) { c += b.get()[i]; }
+        else for (i = 0; i < a.size() + 1; i++) { c += b.get()[i]; }
+        Middle.init(c);
+        x = b.size() - c.length();
+        i = 0;
+        while (COM_NN_D(Middle, a) != 1) {
+            Middle.init(SUB_NN_N(Middle, a));
+            i++;
+        }
+        c = (char)(i + '0');
+        Middle.init(c);
+        Middle.init(c = MUL_Nk_N(Middle, x));
+        return Middle.get();
+    }
+    else return "1";
+}
+string DIV_NN_N(Natur a, Natur b)
+{
+    if(COM_NN_D(a,b)==2) return (a/b).get();
+    else return (b/a).get();
+}
+string MOD_NN_N(Natur a, Natur b)
+{
+    if(COM_NN_D(a,b)==2) return (a%b).get();
+    else return (b%a).get();
+}
+string GCF_NN_N(Natur a, Natur b)
+{
+    while (a.get()!="0" && b.get()!="0")
+    {  if(COM_NN_D(a,b)==2) a=a%b; else b=b%a; }
+    return (a+b).get();
+}
+string LCM_NN_N(Natur a, Natur b)
+{
+    Natur gcd(GCF_NN_N(a,b));
+    a=a*b;
+    return (a/gcd).get();
+}
+
 int naturalis() //работаем с натуральными
 {
     Natur n1, n2;
     int res, isOk,mnoj;
     string resStr;
-    cout<<"Введите два натуральных числа";
+    cout<<"Введите два натуральных числа"<<'\n';
     n1.init(); n2.init();
     int funkType;
     cout<<"\nВыбирите функцию\n"<<"1 - сравнить\n"<<"2 - проверка на ноль\n"<<"3 - добавить 1\n"
@@ -193,17 +291,54 @@ int naturalis() //работаем с натуральными
             if (cin.fail() || mnoj<0) return error(1);
             if (res==1) cout<<"Результат вычитания "<<SUB_NDN_N(n1, n2, mnoj)<<'\n';
             else if (res==2) cout<<"Результат вычитания "<<SUB_NDN_N(n2, n1, mnoj)<<'\n'; else return error(1); break;
-        case 9:  cout<<"Первая цифра деления: "<<DIV_NN_Dk(n1, n2)<<'\n'; break; //ШТ ЗКЩПКУЫЫ
+        case 10:  cout<<"Первая цифра деления: "<<DIV_NN_Dk(n1, n2)<<'\n'; break; //сделано kill_soap
+        case 11: cout<<"Частное равно "<<DIV_NN_N(n1,n2)<<'\n'; break;
+        case 12: cout<<"Остаток от деления большего на меньшее равен "<<MOD_NN_N(n1,n2); break;
+        case 13: cout<<"НОД равен "<<GCF_NN_N(n1,n2); break;
+        case 14: cout<<"НОК равен "<<LCM_NN_N(n1,n2); break;
         default: return error(1);
     }
     return 0;
 }
+int Integer()
+{
+    int funkType;
+    cout << "\nВыбирите функцию\n"<< "1 - модуль числа\n"<< "2 - проверить на знак\n"<< "3 - умножить на -1\n"
+    <<"4 - преобразовать натуральное в целое\n" <<" 5 - преобразовать из целого в натуральное\n" <<"6 - сложить\n"<< "7 - вычесть\n"
+    <<"8 - перемножить\n" <<"9 - частное от деления \n" << "10 - остаток от деления\n";
+    cin>> funkType;
+    return 0;
+}
+
+int Rational_Numbers()
+{
+    int funkType;
+    cout <<"\nВыбирите функцию\n" <<"1 - сокращение дроби\n"<< "2 - проверка на целое\n"<< "3 - преобразование целого в дробное\n"
+    <<"4 - Преобразование дробного в целое\n" <<" 5 - Сложение дробей\n" <<"6 - Вычитание дробей\n"<< "7 - Умножение дробей\n"
+    <<"8 - Деление дробей\n";
+    cin>> funkType;
+    return 0;
+}
+int Polynomial()
+{
+    int funkType;
+    cout <<"\nВыбирите функцию\n" <<"1 - Сложение многочленов\n" <<"2 - Вычитание многочленов\n"<< "3 - Умножение многочлена на рациональное число\n"
+    <<"4 - Умножение многочлена на x^k\n" <<" 5 - Старший коэффициент многочлена\n" <<"6 - Степень многочлена\n" <<"7 - Вынесение из многочлена НОК знаменателей коэффициентов и НОД числителей\n"
+    <<"8 - Умножение многочленов\n"<< "9 - Частное от деления многочлена на многочлен\n"<< "10 - Остаток от деления многочлена на многочлен\n"
+    <<"11 - НОД многочленов\n"<<"12 - Производная многочлена\n"<< "13 - Преобразование многочлена — кратные корни в простые\n";
+    cin >>funkType;
+    return 0;
+}
 int main() {
+    setlocale(LC_ALL, "Rus");
     int mode, isOk;
-    cout<<"Выбери тип переменных\n"<<"1 - Натуральные\n";
-    cin>>mode;
-    switch(mode){
-        case 1: isOk=naturalis(); break;
+    cout <<"Выбери тип переменных\n"<< "1 - Натуральные\n" <<"2 - Целые\n" <<"3 - Рациональная числа\n" <<"4 - Многочлен с рациональными коэффициентами\n";
+    cin>> mode;
+    switch (mode) {
+        case 1: isOk = naturalis(); break;
+        case 2: isOk = Integer(); break;
+        case 3: isOk = Rational_Numbers(); break;
+        case 4: isOk = Polynomial(); break;
         default: return error(1);
     }
     return isOk;
