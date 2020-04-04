@@ -84,6 +84,7 @@ Natur operator-(Natur& left, Natur& right)
         } else rez += (char) ((a[i] - '0') - (b[i-(a.size()-b.size())] - '0') + '0');
     }
     for (i=0; rez[i]=='0' ;)  rez.erase(i,1);
+    if (rez=="") rez="0";
     res.init(rez);
     return res;
 }
@@ -134,6 +135,86 @@ Natur operator%(Natur& left, Natur& right) {
     }
     return delim;
 }
+class Zahlen{
+private:
+    Natur ch;
+    short int znak;
+public:
+    void init(){  //получение числа
+        string str;
+        short int zn;
+        cin>>str;
+        if (str[0]=='-'){ zn=-1; str.erase(0,1);}
+        else zn=1;
+        this->ch.init(str);
+        this->znak=zn;
+    }
+    void init(string str){  //получение числа
+        int zn;
+        if (str[0]=='-'){ zn=-1; str.erase(0,1);}
+        else zn=1;
+        this->ch.init(str);
+        this->znak=zn;
+    }
+    void init(string str, int zn){  //получение числа
+        if (str[0]=='-') str.erase(0,1);
+        this->ch.init(str);
+        this->znak=zn;
+    }
+    void init(Natur a){  //получение числа
+        this->ch=a;
+        this->znak=1;
+    }
+    void mulZnak(int i)
+    {this->znak*=i;}
+    string get(){
+        return this->znak==-1?('-'+this->ch.get()):this->ch.get();
+    }
+    string abs(){
+        return this->ch.get();
+    }
+    Natur absN()
+    {return this->ch;}
+    int getZnak()
+    { return this->znak;}
+    friend Zahlen operator+(Zahlen& left, Zahlen& right);
+    friend Zahlen operator-(Zahlen& left, Zahlen& right);
+    friend Zahlen operator*(Zahlen& left, Zahlen& right);
+    friend Zahlen operator/(Zahlen& left, Zahlen& right);
+};
+Zahlen operator+(Zahlen& left, Zahlen& right)
+{
+   Natur a,b;
+   Zahlen res;
+   int x;
+   a=left.absN(); b=right.absN();
+   if (left.getZnak()==right.getZnak()) {res.init(a+b); res.mulZnak(left.getZnak());}
+   else { res.init(a-b);
+       if ((x=COM_NN_D(left.absN(), right.absN())) == 2) res.mulZnak(left.getZnak());
+       else if (x==1) res.mulZnak(right.getZnak());
+   }
+   return res;
+}
+Zahlen operator-(Zahlen& left, Zahlen& right)
+{
+    right.mulZnak(-1);
+    return left+right;
+}
+Zahlen operator*(Zahlen& left, Zahlen& right)
+{
+    Natur a,b;
+    Zahlen res;
+    a=left.absN();b=right.absN();
+    res.init(a*b); res.mulZnak(left.getZnak()*right.getZnak()) ;
+    return res;
+}
+Zahlen operator/(Zahlen& left, Zahlen& right)
+{
+  /*  Natur a=left.absN(),b.absN();
+    Zahlen res;
+    a=a/b;
+    ///////afawfaw */
+}
 /*
  * Дополнительные функции
  */
@@ -144,7 +225,38 @@ int error(int type){  // вывод ошибки
 /*
  * Функции основной работы
  */
-
+//Zahlen
+string ABS_Z_N(Zahlen a)
+{
+    return a.abs();
+}
+string POZ_Z_D(Zahlen a)
+{
+    if (a.abs()=="0") return "0";
+    if (a.getZnak()==-1) return "1"; else return "2";
+}
+string MUL_ZM_Z(Zahlen a)
+{
+    a.mulZnak(-1);
+    return a.get();
+}
+string ADD_ZZ_Z(Zahlen a, Zahlen b)
+{
+    return(a+b).get();
+}
+string SUB_ZZ_Z(Zahlen a, Zahlen b)
+{
+    return (a-b).get();
+}
+string MUL_ZZ_Z(Zahlen a, Zahlen b)
+{
+    return (a*b).get();
+}
+string DIV_ZZ_Z(Zahlen a,Zahlen b)
+{
+    return (a/b).get();
+}
+//Naturalis
 int COM_NN_D(Natur a, Natur b) //2 if 1e>; 1 if <; 0 if ==
 {
     if (a.size()>b.size()) return 2; else if (a.size()<b.size()) return 1;
@@ -256,7 +368,7 @@ string LCM_NN_N(Natur a, Natur b)
     return (a/gcd).get();
 }
 
-int naturalis() //работаем с натуральными
+int Naturalis() //работаем с натуральными
 {
     Natur n1, n2;
     int res, isOk,mnoj;
@@ -302,11 +414,30 @@ int naturalis() //работаем с натуральными
 }
 int Integer()
 {
-    int funkType;
+    int funkType, res;
+    string reZ;
+    Zahlen n1,n2;
+    cout<<"Введите два целых числа"<<'\n';
+    n1.init(); n2.init();
     cout << "\nВыбирите функцию\n"<< "1 - модуль числа\n"<< "2 - проверить на знак\n"<< "3 - умножить на -1\n"
-    <<"4 - преобразовать натуральное в целое\n" <<" 5 - преобразовать из целого в натуральное\n" <<"6 - сложить\n"<< "7 - вычесть\n"
-    <<"8 - перемножить\n" <<"9 - частное от деления \n" << "10 - остаток от деления\n";
+     <<"4 - сложить\n"<< "5 - вычесть\n"
+    <<"6 - перемножить\n" <<"7 - частное от деления \n" << "8 - остаток от деления\n";
     cin>> funkType;
+    switch (funkType) {
+        case 1: cout<<"Модуль какого числа хотите (Введите 1 или 2)?\n"; cin>>res;
+        if (res==1) cout<<"Модуль первого числа равен "<<ABS_Z_N(n1); else if (res==2) cout<<"Модуль второго числа равен "<<ABS_Z_N(n2);
+        else return error(1); break;
+        case 2: cout<<"Какое число проверить (1 или 2)?\n"; cin>>res; if (res==1) reZ=POZ_Z_D(n1); else if (res==2) reZ=POZ_Z_D(n2); else return error(1);
+            if (reZ=="1") cout<<"Число отрицательное"; else if (reZ=="2") cout<<"Число положительное"; else cout<<"Число является нулём";
+            break;
+        case 3: cout<<"Какое число умножить на -1? (1 или 2)\n"; cin>>res; if (res==1) cout<<"Результат "<<MUL_ZM_Z(n1); else
+            if (res==2) cout<<"Результат "<<MUL_ZM_Z(n2); else return error(1); break;
+        case 4: cout<<"Результат сложения: "<<ADD_ZZ_Z(n1,n2); break;
+        case 5: cout<<"Результат вычитания: "<<SUB_ZZ_Z(n1,n2); break;
+        case 6: cout<<"Результат умножения: "<<MUL_ZZ_Z(n1,n2); break;
+        case 7: cout<<"Частное от деления: "<<DIV_ZZ_Z(n1,n2); break;
+        default: return error(1);
+    }
     return 0;
 }
 
@@ -335,7 +466,7 @@ int main() {
     cout <<"Выбери тип переменных\n"<< "1 - Натуральные\n" <<"2 - Целые\n" <<"3 - Рациональная числа\n" <<"4 - Многочлен с рациональными коэффициентами\n";
     cin>> mode;
     switch (mode) {
-        case 1: isOk = naturalis(); break;
+        case 1: isOk = Naturalis(); break;
         case 2: isOk = Integer(); break;
         case 3: isOk = Rational_Numbers(); break;
         case 4: isOk = Polynomial(); break;
