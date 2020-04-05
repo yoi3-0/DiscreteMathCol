@@ -104,7 +104,7 @@ Natur operator*(Natur& left, Natur& right){
 Natur operator/(Natur& left, Natur& right) {
     Natur delim(left.get()), helper;
     Natur result,init("0");
-    while (COM_NN_D(delim,right)==2)
+    while (COM_NN_D(delim,right)==2 || COM_NN_D(delim,right)==0)
     {
         helper.init(DIV_NN_Dk(delim, right)); //первая цифра деления на 10^k
        // cout<<"Число="<<helper.get()<<'\n';
@@ -121,7 +121,7 @@ Natur operator/(Natur& left, Natur& right) {
 Natur operator%(Natur& left, Natur& right) {
     Natur delim(left.get()), helper;
     Natur result,init("0");
-    while (COM_NN_D(delim,right)==2)
+    while (COM_NN_D(delim,right)==2 || COM_NN_D(delim,right)==0)
     {
         helper.init(DIV_NN_Dk(delim, right)); //первая цифра деления на 10^k
        // cout<<"Число="<<helper.get()<<'\n';
@@ -181,6 +181,7 @@ public:
     friend Zahlen operator-(Zahlen& left, Zahlen& right);
     friend Zahlen operator*(Zahlen& left, Zahlen& right);
     friend Zahlen operator/(Zahlen& left, Zahlen& right);
+    friend Zahlen operator%(Zahlen& left, Zahlen& right);
 };
 Zahlen operator+(Zahlen& left, Zahlen& right)
 {
@@ -210,10 +211,31 @@ Zahlen operator*(Zahlen& left, Zahlen& right)
 }
 Zahlen operator/(Zahlen& left, Zahlen& right)
 {
-  /*  Natur a=left.absN(),b.absN();
+   Natur a=left.absN(),b=right.absN(), helper("1");
+   Zahlen res;
+   if (left.getZnak()==-1) {
+      if ((a%b).get()=="0") a = a / b;
+      else{
+           a = a / b;
+           a=a+helper;
+      }
+   } else{
+       a=a/b;
+   }
+   if (left.getZnak()==right.getZnak()) res.init(a); else
+   {
+       res.init(a);
+       res.mulZnak(-1);
+   }
+   return res;
+}
+Zahlen operator%(Zahlen& left, Zahlen& right)
+{
     Zahlen res;
-    a=a/b;
-    ///////afawfaw */
+    res=left/right;
+    res=right*res;
+    res=left-res;
+    return res;
 }
 /*
  * Дополнительные функции
@@ -254,7 +276,13 @@ string MUL_ZZ_Z(Zahlen a, Zahlen b)
 }
 string DIV_ZZ_Z(Zahlen a,Zahlen b)
 {
-    return (a/b).get();
+    int x;
+    if ((x=COM_NN_D(a.absN(),b.absN()))==2) return (a/b).get();
+    else return (b/a).get();
+}
+string MOD_ZZ_Z(Zahlen a, Zahlen b)
+{
+   return (a%b).get();
 }
 //Naturalis
 int COM_NN_D(Natur a, Natur b) //2 if 1e>; 1 if <; 0 if ==
@@ -436,6 +464,7 @@ int Integer()
         case 5: cout<<"Результат вычитания: "<<SUB_ZZ_Z(n1,n2); break;
         case 6: cout<<"Результат умножения: "<<MUL_ZZ_Z(n1,n2); break;
         case 7: cout<<"Частное от деления: "<<DIV_ZZ_Z(n1,n2); break;
+        case 8: cout<<"Остаток от деления: "<<MOD_ZZ_Z(n1,n2); break;
         default: return error(1);
     }
     return 0;
