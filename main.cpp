@@ -237,11 +237,26 @@ Zahlen operator%(Zahlen& left, Zahlen& right)
     res=left-res;
     return res;
 }
+string ADD_ZZ_Z (Zahlen, Zahlen);
+string LCM_NN_N(Natur a, Natur b);
+string DIV_NN_N(Natur, Natur);
+string MUL_ZZ_Z(Zahlen, Zahlen);
 class Ratio{
 private:
     Zahlen ch;
     Natur zn;
 public:
+    void exchange()
+    {
+        Natur a;
+        a=this->ch.absN();
+        this->ch.init(this->zn.get(),this->ch.getZnak());
+        this->zn=a;
+    }
+    void mulZnak(int x)
+    {
+        this->ch.mulZnak(x);
+    }
     Zahlen getCh(){
         return this->ch;
     }
@@ -259,6 +274,11 @@ public:
     {
         this->ch=a;
         this->zn=b;
+    }
+    void init(Zahlen a)
+    {
+        this->ch=a;
+        this->zn.init("1");
     }
     void init()
     {
@@ -280,8 +300,76 @@ public:
         this->ch=a;
         this->zn=b;
     }
-
+    void init(string str)
+    {
+        string helper;
+        int i;
+        for (i=0;str[i]!='/' && i<str.length();i++)
+            helper+=str[i];
+        Zahlen a; Natur b;
+        a.init(helper);
+        if(i!=str.length())
+        {
+            helper="";
+            for (i=i+1;i<str.length();i++)
+                helper+=str[i];
+            b.init(helper);
+        }
+        else b.init("1");
+        this->ch=a;
+        this->zn=b;
+    }
+    friend Ratio operator+(Ratio& left, Ratio& right);
+    friend Ratio operator-(Ratio& left, Ratio& right);
+    friend Ratio operator*(Ratio& left, Ratio& right);
+    friend Ratio operator/(Ratio& left, Ratio& right);
+    friend string RED_Q_Q(Ratio);
 };
+Ratio operator+(Ratio& left, Ratio& right)
+{
+    string c;
+    Natur e, help1, help2;
+    Zahlen Ch1, Ch2;
+    Ratio d, a, b;
+    a.init (left.get()); b.init(right.get());
+    if (COM_NN_D(a.getZn(), b.getZn()) == 0) { c = ADD_ZZ_Z(a.getCh(), b.getCh()); c += "/"; c += a.getZn().get(); d.init(c); d.init(RED_Q_Q(d)); return d;}
+    else e.init(LCM_NN_N(a.getZn(), b.getZn())); // Нок знаменателей
+    help1.init(DIV_NN_N(e, a.getZn())); help2.init(DIV_NN_N(e, b.getZn())); Zahlen n1, n2; n1.init(help1); n2.init(help2); // на что нужно домножить числители
+    Ch1.init(MUL_ZZ_Z(a.getCh(), n1)); Ch2.init(MUL_ZZ_Z(b.getCh(), n2)); // получение "умноженных" числителей
+    c = ADD_ZZ_Z(Ch1, Ch2); c += "/"; c += e.get(); d.init(c);
+    b.init(RED_Q_Q(d));
+    return b;
+}
+Ratio operator-(Ratio& left, Ratio& right)
+{
+    Ratio b;
+    b.init(right.get());
+    b.mulZnak(-1);
+    return (left+b);
+
+}
+Ratio operator*(Ratio& left, Ratio& right)
+{
+    Zahlen a,b;
+    Natur d,c;
+    a=left.getCh(); b=right.getCh();
+    c=left.getZn(); d=right.getZn();
+    a=a*b;
+    c=c*d;
+    Ratio res;
+    res.init(a,c);
+    res.init(RED_Q_Q(res));
+    return res;
+}
+Ratio operator/(Ratio& left, Ratio& right)
+{
+    Ratio b;
+    b.init(right.get());
+    b.exchange();
+    b=left*b;
+    b.init(RED_Q_Q(b));
+    return b;
+}
 /*
  * Дополнительные функции
  */
@@ -452,11 +540,27 @@ string RED_Q_Q(Ratio a)
     a.init(helperZ2/helperZ1,helper2/helper);
     return a.get();
 }
-string INT_Q_B(Ratio a)
+string INT_Q_B(Ratio a)   //by kill_soap
 {
     Natur d; d=a.getCh().absN();
     if (MOD_NN_N(d, a.getZn()) == "0" || a.getZn().get()=="1") return "Число является целым\n";
     else return "Число не является целым";
+}
+string ADD_QQ_Q(Ratio a, Ratio b) //by kill_soap
+{
+  return (a+b).get();
+}
+string SUB_QQ_Q(Ratio a, Ratio b)
+{
+    return (a-b).get();
+}
+string MUL_QQ_Q(Ratio a, Ratio b)
+{
+    return (a*b).get();
+}
+string DIV_QQ_Q(Ratio a, Ratio b)
+{
+    return (a/b).get();
 }
 int Naturalis() //работаем с натуральными
 {
@@ -539,9 +643,8 @@ int Rational_Numbers()
     cout<<"Введите два рациональных числа (Пример: -1/2)"<<'\n';
     Ratio n2,n1;
     n1.init();n2.init();
-    cout <<"\nВыбирите функцию\n" <<"1 - сокращение дроби\n"<< "2 - проверка на целое\n"<< "3 - преобразование целого в дробное\n"
-    <<"4 - Преобразование дробного в целое\n" <<"5 - Сложение дробей\n" <<"6 - Вычитание дробей\n"<< "7 - Умножение дробей\n"
-    <<"8 - Деление дробей\n";
+    cout <<"\nВыбирите функцию\n" <<"1 - сокращение дроби\n"<< "2 - проверка на целое\n" <<"3 - Сложение дробей\n" <<"4 - Вычитание дробей\n"
+    << "5 - Умножение дробей\n"<<"6 - Деление дробей\n";
     cin>> funkType;
     switch (funkType) {
         case 1: cout<<"Сократить какую дробь хотите (Введите 1 или 2)?\n"; cin>>res;
@@ -550,6 +653,10 @@ int Rational_Numbers()
         case 2: cout<<"Проверить какую дробь хотите (Введите 1 или 2)?\n"; cin>>res;
             if (res==1) cout<<INT_Q_B(n1); else if (res==2) cout<<INT_Q_B(n2);
             else return error(1); break;
+        case 3: cout<<"Результат сложения: "<<ADD_QQ_Q(n1,n2); break;
+        case 4: cout<<"Результат вычитания: "<<SUB_QQ_Q(n1,n2); break;
+        case 5: cout<<"Результат умножения: "<<MUL_QQ_Q(n1,n2); break;
+        case 6: cout<<"Результат деления: "<<DIV_QQ_Q(n1,n2); break;
         default: return error(1);
     }
     return 0;
