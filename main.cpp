@@ -237,6 +237,51 @@ Zahlen operator%(Zahlen& left, Zahlen& right)
     res=left-res;
     return res;
 }
+class Ratio{
+private:
+    Zahlen ch;
+    Natur zn;
+public:
+    Zahlen getCh(){
+        return this->ch;
+    }
+    Natur getZn(){
+        return this->zn;
+    }
+    string get(){
+        string res="";
+        res+=this->ch.get();
+        res+='/';
+        res+=this->zn.get();
+        return res;
+    }
+    void init(Zahlen a,Natur b)
+    {
+        this->ch=a;
+        this->zn=b;
+    }
+    void init()
+    {
+        string str, helper="";
+        cin>>str;
+        int i;
+        for (i=0;str[i]!='/' && i<str.length();i++)
+        helper+=str[i];
+        Zahlen a; Natur b;
+        a.init(helper);
+       if(i!=str.length())
+       {
+           helper="";
+           for (i=i+1;i<str.length();i++)
+            helper+=str[i];
+           b.init(helper);
+       }
+        else b.init("1");
+        this->ch=a;
+        this->zn=b;
+    }
+
+};
 /*
  * Дополнительные функции
  */
@@ -395,7 +440,24 @@ string LCM_NN_N(Natur a, Natur b)
     a=a*b;
     return (a/gcd).get();
 }
-
+//Ratio
+string RED_Q_Q(Ratio a)
+{
+    Natur helper, helper2;
+    Zahlen helperZ1, helperZ2;
+    helper.init(GCF_NN_N(a.getCh().absN(),a.getZn()));
+    helperZ2=a.getCh();
+    helperZ1.init(helper);
+    helper2=a.getZn();
+    a.init(helperZ2/helperZ1,helper2/helper);
+    return a.get();
+}
+string INT_Q_B(Ratio a)
+{
+    Natur d; d=a.getCh().absN();
+    if (MOD_NN_N(d, a.getZn()) == "0" || a.getZn().get()=="1") return "Число является целым\n";
+    else return "Число не является целым";
+}
 int Naturalis() //работаем с натуральными
 {
     Natur n1, n2;
@@ -473,10 +535,23 @@ int Integer()
 int Rational_Numbers()
 {
     int funkType;
+    int res;
+    cout<<"Введите два рациональных числа (Пример: -1/2)"<<'\n';
+    Ratio n2,n1;
+    n1.init();n2.init();
     cout <<"\nВыбирите функцию\n" <<"1 - сокращение дроби\n"<< "2 - проверка на целое\n"<< "3 - преобразование целого в дробное\n"
-    <<"4 - Преобразование дробного в целое\n" <<" 5 - Сложение дробей\n" <<"6 - Вычитание дробей\n"<< "7 - Умножение дробей\n"
+    <<"4 - Преобразование дробного в целое\n" <<"5 - Сложение дробей\n" <<"6 - Вычитание дробей\n"<< "7 - Умножение дробей\n"
     <<"8 - Деление дробей\n";
     cin>> funkType;
+    switch (funkType) {
+        case 1: cout<<"Сократить какую дробь хотите (Введите 1 или 2)?\n"; cin>>res;
+            if (res==1) cout<<"Сокращенная дробь: "<<RED_Q_Q(n1); else if (res==2) cout<<"Сокращенная дробь: "<<RED_Q_Q(n2);
+            else return error(1); break;
+        case 2: cout<<"Проверить какую дробь хотите (Введите 1 или 2)?\n"; cin>>res;
+            if (res==1) cout<<INT_Q_B(n1); else if (res==2) cout<<INT_Q_B(n2);
+            else return error(1); break;
+        default: return error(1);
+    }
     return 0;
 }
 int Polynomial()
