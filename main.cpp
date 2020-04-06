@@ -394,7 +394,7 @@ public:
         {
             if (str[i]=='+' || str[i]=='-')
             {
-                cout<<"Хоба, я тут"<<i<<'\n';
+                //cout<<"Хоба, я тут"<<i<<'\n';
                 subStr=str.substr(j,i-j);
                 if (str[j]=='+') j=1; else j=0;
                 posX=subStr.find("x");
@@ -456,6 +456,9 @@ public:
     }
 
     friend Polinomen ADD_PP_P(Polinomen,Polinomen);
+    friend Polinomen SUB_PP_P(Polinomen, Polinomen);
+    friend Polinomen MUL_Pxk_P(Polinomen, Natur);
+    friend Polinomen MUL_PQ_P(Polinomen, Ratio);
 };
 /*
  * Дополнительные функции
@@ -474,6 +477,34 @@ Polinomen ADD_PP_P(Polinomen a,Polinomen b)
     {
        a.koef[item.first]=a.koef[item.first]+b.koef[item.first];
     }
+    return a;
+}
+Polinomen SUB_PP_P(Polinomen a,Polinomen b)
+{
+    for(auto& item : a.koef)
+    {
+        a.koef[item.first]=a.koef[item.first]-b.koef[item.first];
+    }
+    return a;
+}
+Polinomen MUL_PQ_P(Polinomen a,Ratio b)
+{
+    for(auto& item : a.koef)
+    {
+        a.koef[item.first]=a.koef[item.first]*b;
+    }
+    return a;
+}
+Polinomen MUL_Pxk_P(Polinomen a, Natur k)
+{
+    Natur helper;
+    map<Natur,Ratio,Compare> kof;
+    for(auto& item : a.koef)
+    {
+        helper=item.first;
+        kof[helper+k]=a.koef[item.first];
+    }
+    a.koef=kof;
     return a;
 }
 //Zahlen
@@ -761,7 +792,10 @@ int Polynomial()
 {
     int funkType;
     Polinomen n1, n2;
+    Ratio x;
+    Natur k;
     int res;
+    string str;
     cout<<"Введите два палинома. Пример ввода: 10+x^2-10x^3\n";
     n1.init(); n2.init();
     cout <<"\nВыбирите функцию\n" <<"1 - Сложение многочленов\n" <<"2 - Вычитание многочленов\n"<< "3 - Умножение многочлена на рациональное число\n"
@@ -771,6 +805,12 @@ int Polynomial()
     cin >>funkType;
     switch (funkType) {
         case 1: cout<<"Результат сложения: "<<ADD_PP_P(n1,n2).get(); break;
+        case 2: cout<<"Результат вычитания: "<<SUB_PP_P(n1,n2).get(); break;
+        case 3: cout<<"Введите рациональное число для умножения\n"; cin>>str; x.init(str); cout<<"Какое число умножаем? (1 или 2)\n";
+        cin>>res; if (res==1) cout<<"Результат: "<<MUL_PQ_P(n1,x).get(); else if (res==2) cout<<"Результат: "<<MUL_PQ_P(n1,x).get();
+        case 4:cout<<"Введите натуральное число - степень x для умножения\n"; cin>>str; k.init(str); cout<<"Какое число умножаем? (1 или 2)\n";
+            cin>>res; if (res==1) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get(); else if (res==2) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get();
+        else return error(1); break;
         default: return error(1);
     }
     return 0;
