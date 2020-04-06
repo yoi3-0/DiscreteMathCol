@@ -241,6 +241,8 @@ Zahlen operator%(Zahlen& left, Zahlen& right)
 string ADD_ZZ_Z (Zahlen, Zahlen);
 string LCM_NN_N(Natur a, Natur b);
 string DIV_NN_N(Natur, Natur);
+string DIV_ZZ_Z(Zahlen,Zahlen);
+string GCF_NN_N(Natur, Natur);
 string MUL_ZZ_Z(Zahlen, Zahlen);
 class Ratio{
 private:
@@ -266,6 +268,7 @@ public:
     }
     string get(){
         string res="";
+        if (this->ch.get()=="0") return "0"; //если что-то отвалится - я не виноват 5.04.20
         res+=this->ch.get();
         res+='/';
         res+=this->zn.get();
@@ -371,6 +374,7 @@ Ratio operator/(Ratio& left, Ratio& right)
     b.init(RED_Q_Q(b));
     return b;
 }
+
 struct Compare{
     bool operator()(const Natur &a,const Natur &b)const{
         return (COM_NN_D(a,b)==2);
@@ -433,6 +437,13 @@ public:
         this->deg=max;
         this->koef=k;
     }
+    Polinomen()
+    {
+        this->deg.init("0");
+        Natur x; x.init("0");
+        Ratio y; y.init("0");
+        this->koef[x]=y;
+    }
     void debug() //ф-ия-член для дебага, сюда не смотрим
     {
         for(auto& item : this->koef)
@@ -440,8 +451,25 @@ public:
             cout << item.first.get() << " : " << item.second.get() << endl; //Вывод ключей и значений
         }
     }
+    void checkout() //Сокращение палинома,  if нулевые коэфиценты
+    {
+        map<Natur,Ratio,Compare> kof;
+        Natur d; //степень тоже может "съехать"
+        d.init("0");
+        for(auto& item : this->koef)
+        {
+            if (this->koef[item.first].get()=="0" && item.first.get()!="0");
+            else {
+                kof[item.first] = this->koef[item.first];
+                if (COM_NN_D(item.first,d)==2) d=item.first;
+            }
+        }
+        this->deg=d;
+        this->koef=kof;
+    }
     string get()
     {
+        this->checkout();
         string str="";
         for(auto& item : this->koef)
         {
@@ -452,13 +480,15 @@ public:
                 str+=item.first.get();
             }
         }
+
         return str;
     }
-
     friend Polinomen ADD_PP_P(Polinomen,Polinomen);
     friend Polinomen SUB_PP_P(Polinomen, Polinomen);
     friend Polinomen MUL_Pxk_P(Polinomen, Natur);
     friend Polinomen MUL_PQ_P(Polinomen, Ratio);
+    friend Natur DEG_P_N(Polinomen);
+    friend Polinomen MUL_PP_P(Polinomen, Polinomen);
 };
 /*
  * Дополнительные функции
@@ -506,6 +536,55 @@ Polinomen MUL_Pxk_P(Polinomen a, Natur k)
     }
     a.koef=kof;
     return a;
+}
+Ratio LED_P_Q(Polinomen a)
+{
+    a.checkout();
+    return a.koef[a.deg];
+}
+Natur DEG_P_N(Polinomen a)
+{
+    a.checkout();
+    return a.deg;
+}
+void FAC_P_Q(Polinomen a)
+{
+    Natur nod;
+    Natur nok;
+    Zahlen nodZ, nokZ;
+   /// Natur helper;               /// А го сделаем тип функций string, нам же точно не понадобится в каждой функции дальше
+    for(auto& item : a.koef)                 ///делать какоую-то переменную, чтобы преобразовывать string к нашим классам
+    {                                                                           ///(с) yoi 3.0
+        if (a.koef[item.first].get()==a.koef[a.deg].get()) {
+            nod =item.second.getCh().absN();
+            nok=item.second.getZn();
+        } else
+        {
+            nod.init(GCF_NN_N(nod,item.second.getCh().absN())); // поледовательно ищем нок и нод, очередного нока и нода и следующих чисел
+            nok.init(LCM_NN_N(nok,item.second.getZn()));
+        }
+    }
+    cout<<"Результат: ";
+    cout<<"("<<nod.get()<<'/'<<nok.get()<<")*(";
+    for(auto& item : a.koef)
+    {
+        nodZ.init(nod);
+        nodZ.init(DIV_ZZ_Z(a.koef[item.first].getCh(),nodZ));
+        nokZ.init(DIV_NN_N(nok,a.koef[item.first].getZn()));
+        if (item.first.get()!="0") cout<<((nokZ*nodZ).getZnak()==1?"+":"-")<<(nokZ*nodZ).get()<<"x^"<<item.first.get();
+        else cout<<((nokZ*nodZ).getZnak()==1?"+":"-")<<(nokZ*nodZ).get();
+    }
+    cout<<")";
+
+}
+Polinomen MUL_PP_P(Polinomen a, Polinomen b)
+{/*
+    Polinomen res;
+    for(auto& item : b.koef)
+    {
+        res=MUL_PQ_P(a,b.koef[item.first]);
+        MUL_Pxk_P(res,)
+    } */
 }
 //Zahlen
 string ABS_Z_N(Zahlen a)
@@ -665,6 +744,7 @@ string RED_Q_Q(Ratio a)
     helperZ1.init(helper);
     helper2=a.getZn();
     a.init(helperZ2/helperZ1,helper2/helper);
+    if (a.getCh().get()=="0") a.init("0");
     return a.get();
 }
 string INT_Q_B(Ratio a)   //by kill_soap
@@ -806,11 +886,18 @@ int Polynomial()
     switch (funkType) {
         case 1: cout<<"Результат сложения: "<<ADD_PP_P(n1,n2).get(); break;
         case 2: cout<<"Результат вычитания: "<<SUB_PP_P(n1,n2).get(); break;
-        case 3: cout<<"Введите рациональное число для умножения\n"; cin>>str; x.init(str); cout<<"Какое число умножаем? (1 или 2)\n";
-        cin>>res; if (res==1) cout<<"Результат: "<<MUL_PQ_P(n1,x).get(); else if (res==2) cout<<"Результат: "<<MUL_PQ_P(n1,x).get();
-        case 4:cout<<"Введите натуральное число - степень x для умножения\n"; cin>>str; k.init(str); cout<<"Какое число умножаем? (1 или 2)\n";
+        case 3: cout<<"Введите рациональное число для умножения\n"; cin>>str; x.init(str); cout<<"Какой палином умножаем? (1 или 2)\n";
+        cin>>res; if (res==1) cout<<"Результат: "<<MUL_PQ_P(n1,x).get(); else if (res==2) cout<<"Результат: "<<MUL_PQ_P(n1,x).get(); else return error(1); break;
+        case 4:cout<<"Введите натуральное число - степень x для умножения\n"; cin>>str; k.init(str); cout<<"Какой палином умножаем? (1 или 2)\n";
             cin>>res; if (res==1) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get(); else if (res==2) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get();
         else return error(1); break;
+        case 5: cout<<"Старший коэфицент какого палинома вывести? (1 или 2)\n";
+            cin>>res; if (res==1) cout<<"Результат: "<<LED_P_Q(n1).get(); else if (res==2) cout<<"Результат: "<<LED_P_Q(n1).get(); else return error(1); break;
+        case 6: cout<<"Степень какого палинома вывести? (1 или 2)\n";
+            cin>>res; if (res==1) cout<<"Результат: "<<DEG_P_N(n1).get(); else if (res==2) cout<<"Результат: "<<DEG_P_N(n1).get(); else return error(1); break;
+        case 7: cout<<"Степень какого палинома вывести? (1 или 2)\n";
+            cin>>res; if (res==1) FAC_P_Q(n1); else if (res==2) FAC_P_Q(n2); else return error(1); break;
+        case 8: cout<<"Результат умножения: "<<MUL_PP_P(n1,n2).get();
         default: return error(1);
     }
     return 0;
