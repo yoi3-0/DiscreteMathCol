@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <map>
 
 using namespace std;
 string errCode[]={"Действие выполнено успешно","Invalid input",};
@@ -20,7 +21,7 @@ public:
         this->ch=str;
     }
     explicit Natur(string i="0"): ch(move(i)){};
-    string get(){
+    string get() const {
         return this->ch;
     }
     int size()
@@ -370,6 +371,92 @@ Ratio operator/(Ratio& left, Ratio& right)
     b.init(RED_Q_Q(b));
     return b;
 }
+struct Compare{
+    bool operator()(const Natur &a,const Natur &b)const{
+        return (COM_NN_D(a,b)==2);
+    }
+};
+class Polinomen{
+public:
+    map<Natur,Ratio,Compare> koef;
+    Natur deg;
+    void init ()
+    {
+        string str, subStr;// subStr- lля записи коефицента и х например, 109x^10
+        cin>>str;
+        Ratio x;
+        map<Natur,Ratio,Compare> k;
+        Natur max, a; ///вместо этой жопы бьем на одночлены и уже из одночленов вынимаем коеф и степень
+        max.init("0");
+        int j=0, i;
+        string::size_type posZnak,posX; //posZnak -позиция знака,  posX - позиция X
+        for (i=0;i<str.length();i++)
+        {
+            if (str[i]=='+' || str[i]=='-')
+            {
+                cout<<"Хоба, я тут"<<i<<'\n';
+                subStr=str.substr(j,i-j);
+                if (str[j]=='+') j=1; else j=0;
+                posX=subStr.find("x");
+                if (posX!=string::npos) {                               //если x есть - берем коэфицент
+                    if (posX!=1) x.init(subStr.substr(j,posX-j));
+                        else if (j==0) x.init("-1"); else x.init("1"); //но если коэфицента нет - то решает -1 или 1 в него ставить
+                    if (subStr[posX+1]=='^') a.init(subStr.substr(posX+2,subStr.length()-posX-2));
+                        else a.init("1");
+                    if (COM_NN_D(a,max)==2) max=a;
+                }
+                else  //если икса нет - то это свободный коэфицент
+                {
+                    x.init(subStr.substr(j,subStr.length()-j));
+                    a.init("0");
+                }
+            j=i;
+            }
+            k[a]=x; //push in map
+        }
+        subStr=str.substr(j,i-j);
+        if (str[j]=='+') j=1; else j=0;
+        posX=subStr.find("x");
+        if (posX!=string::npos) {                               //если x есть - берем коэфицент
+            if (posX!=1) x.init(subStr.substr(j,posX-j));
+            else if (j==0) x.init("-1"); else x.init("1"); //но если коэфицента нет - то решает -1 или 1 в него ставить
+            if (subStr[posX+1]=='^') a.init(subStr.substr(posX+2,subStr.length()-posX-2));
+            else a.init("1");
+            if (COM_NN_D(a,max)==2) max=a;
+        }
+        else  //если икса нет - то это свободный коэфицент
+        {
+            x.init(subStr.substr(j,subStr.length()-j));
+            a.init("0");
+        }
+        k[a]=x; //push in map
+        this->deg=max;
+        this->koef=k;
+    }
+    void debug() //ф-ия-член для дебага, сюда не смотрим
+    {
+        for(auto& item : this->koef)
+        {
+            cout << item.first.get() << " : " << item.second.get() << endl; //Вывод ключей и значений
+        }
+    }
+    string get()
+    {
+        string str="";
+        for(auto& item : this->koef)
+        {
+            if(item.second.get()[0]!='-') str+='+';
+            str+=item.second.get();
+            if(item.first.get()!="0") {
+                str+="x^";
+                str+=item.first.get();
+            }
+        }
+        return str;
+    }
+
+    friend Polinomen ADD_PP_P(Polinomen,Polinomen);
+};
 /*
  * Дополнительные функции
  */
@@ -380,6 +467,15 @@ int error(int type){  // вывод ошибки
 /*
  * Функции основной работы
  */
+// Polinomen
+Polinomen ADD_PP_P(Polinomen a,Polinomen b)
+{
+    for(auto& item : a.koef)
+    {
+       a.koef[item.first]=a.koef[item.first]+b.koef[item.first];
+    }
+    return a;
+}
 //Zahlen
 string ABS_Z_N(Zahlen a)
 {
@@ -571,7 +667,7 @@ int Naturalis() //работаем с натуральными
     n1.init(); n2.init();
     int funkType;
     cout<<"\nВыбирите функцию\n"<<"1 - сравнить\n"<<"2 - проверка на ноль\n"<<"3 - добавить 1\n"
-    <<"4 - Сложить\n"<<" 5 - вычесть (из большего)\n"<<"6 - умножить на число\n"<<"7 - умножить на 10^k\n"
+    <<"4 - Сложить\n"<<"5 - вычесть (из большего)\n"<<"6 - умножить на число\n"<<"7 - умножить на 10^k\n"
     <<"8 - перемножить\n"<<"9 - вычесть умноженное на число\n"<<"10 - первая цифра деления (большего на меньшее)\n"
     <<"11 - частное (большее/меньшее) с остатком\n"<<"12 - остаток от деления\n"<<"13 - НОД\n"<<"14 - НОК\n";
     cin>>funkType;
@@ -664,11 +760,19 @@ int Rational_Numbers()
 int Polynomial()
 {
     int funkType;
+    Polinomen n1, n2;
+    int res;
+    cout<<"Введите два палинома. Пример ввода: 10+x^2-10x^3\n";
+    n1.init(); n2.init();
     cout <<"\nВыбирите функцию\n" <<"1 - Сложение многочленов\n" <<"2 - Вычитание многочленов\n"<< "3 - Умножение многочлена на рациональное число\n"
-    <<"4 - Умножение многочлена на x^k\n" <<" 5 - Старший коэффициент многочлена\n" <<"6 - Степень многочлена\n" <<"7 - Вынесение из многочлена НОК знаменателей коэффициентов и НОД числителей\n"
+    <<"4 - Умножение многочлена на x^k\n" <<"5 - Старший коэффициент многочлена\n" <<"6 - Степень многочлена\n" <<"7 - Вынесение из многочлена НОК знаменателей коэффициентов и НОД числителей\n"
     <<"8 - Умножение многочленов\n"<< "9 - Частное от деления многочлена на многочлен\n"<< "10 - Остаток от деления многочлена на многочлен\n"
     <<"11 - НОД многочленов\n"<<"12 - Производная многочлена\n"<< "13 - Преобразование многочлена — кратные корни в простые\n";
     cin >>funkType;
+    switch (funkType) {
+        case 1: cout<<"Результат сложения: "<<ADD_PP_P(n1,n2).get(); break;
+        default: return error(1);
+    }
     return 0;
 }
 int main() {
