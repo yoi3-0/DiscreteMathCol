@@ -93,6 +93,7 @@ Natur operator*(Natur& left, Natur& right){
     Natur helper;
     Natur result;
     result.init("0");
+    if (left.get()=="0") return result;
     for (int i=0;i<right.size();i++)
     {
         helper.init(MUL_ND_N(left, right.get()[right.size()-1-i]-'0'));
@@ -358,11 +359,12 @@ Ratio operator*(Ratio& left, Ratio& right)
 {
     Zahlen a,b;
     Natur d,c;
+    Ratio res; res.init("0");
     a=left.getCh(); b=right.getCh();
+    if(a.get()=="-0" || b.get()=="-0") return res;
     c=left.getZn(); d=right.getZn();
     a=a*b;
     c=c*d;
-    Ratio res;
     res.init(a,c);
     res.init(RED_Q_Q(res));
     return res;
@@ -411,7 +413,7 @@ public:
                 if (str[j]=='+') j=1; else j=0;
                 posX=subStr.find("x");
                 if (posX!=string::npos) {                               //если x есть - берем коэфицент
-                    if (posX!=0 && subStr[0]!='+' && subStr[0]!='-') x.init(subStr.substr(j,posX-j));
+                    if ((posX!=0 && posX!=1 )||  (posX==1 && subStr[0]!='+' && subStr[0]!='-')) x.init(subStr.substr(j,posX-j));
                     else if(subStr[0]=='+' || posX==0) x.init("1");else if(subStr[0]=='-') x.init("-1");//но если коэфицента нет - то решает -1 или 1 в него ставить
                     if (subStr[posX+1]=='^') a.init(subStr.substr(posX+2,subStr.length()-posX-2));
                     else a.init("1");
@@ -430,7 +432,7 @@ public:
         if (str[j]=='+') j=1; else j=0;
         posX=subStr.find("x");
         if (posX!=string::npos) {                               //если x есть - берем коэфицент
-            if (posX!=0 && subStr[0]!='+' && subStr[0]!='-') x.init(subStr.substr(j,posX-j));
+            if ((posX!=0 && posX!=1 )||  (posX==1 && subStr[0]!='+' && subStr[0]!='-')) x.init(subStr.substr(j,posX-j));
             else if(subStr[0]=='+' || posX==0) x.init("1");else if(subStr[0]=='-') x.init("-1"); //но если коэфицента нет - то решает -1 или 1 в него ставить
             if (subStr[posX+1]=='^') a.init(subStr.substr(posX+2,subStr.length()-posX-2));
             else a.init("1");
@@ -528,9 +530,11 @@ Polinomen SUB_PP_P(Polinomen a,Polinomen b)
 }
 Polinomen MUL_PQ_P(Polinomen a,Ratio b)
 {
+    a.checkout();
     for(auto& item : a.koef)
     {
-        a.koef[item.first]=a.koef[item.first]*b;
+       if (a.koef[item.first].get()!="0") a.koef[item.first]=a.koef[item.first]*b;
+        //cout<<a.koef[item.first].get()<<' ';
     }
     return a;
 }
@@ -592,7 +596,7 @@ Polinomen MUL_PP_P(Polinomen a, Polinomen b)
     for(auto& item : b.koef)
     {
         helper=MUL_PQ_P(a,b.koef[item.first]);
-        cout<<"после умножения на коэф"<<helper.get()<<'\n';
+       // cout<<"после умножения на коэф"<<helper.get()<<'\n';
         res=ADD_PP_P(res,MUL_Pxk_P(helper,item.first));
     }
     return res;
@@ -602,24 +606,24 @@ Polinomen DIV_PP_P(Polinomen a, Polinomen b)
     Polinomen delim, res;        ///delim - делитель в текущий момент, остаток - логично, что остаток
     Ratio mnoj;                  /// множитель,  на который умножаем все коэфиценты делиеля
     Natur helper;
-    map <Natur,Ratio,Compare> ::iterator it = b.koef.end();
-    it--;
-    cout<<((*it).first).get()<<'\n';
-   /* for(auto& item : a.koef)
-    {
-        if (COM_NN_D(item.first,(*it).first)!=1) {
-            mnoj = a.koef[item.first] / (*it).second;
-            helper.init(SUB_NN_N(item.first,(*it).first));
+    map <Natur,Ratio,Compare> ::iterator it = b.koef.end(), iter; it--;
+     //        cout<<b.get()<<"Первый"<<(*(it)).second.get()<<' ';
+    b.checkout();
+   // cout<<(*iter).first.get();
+    while (COM_NN_D(a.deg,(*it).first)!=1) {
+            iter=a.koef.begin();
+            mnoj = (*iter).second / (*it).second;
+            helper.init(SUB_NN_N((*iter).first,(*it).first));
             res.koef[helper]=mnoj;
-            delim = MUL_PQ_P(a, mnoj);
+            delim = MUL_PQ_P(b, mnoj);
             delim = MUL_Pxk_P(delim, helper);
+           // cout<<delim.get()<<' ';
             a = SUB_PP_P(a, delim);
-        } else break;
+            a.checkout();
+            //cout<<a.get()<<" ";
     }
     res.checkout();
-    return res; */
-        return a;
-
+    return res;
 }
 short int DER_P_P(Polinomen a)
 {
@@ -943,7 +947,7 @@ int Polynomial()
             cin>>res; if (res==1) cout<<"Результат: "<<LED_P_Q(n1).get(); else if (res==2) cout<<"Результат: "<<LED_P_Q(n1).get(); else return error(1); break;
         case 6: cout<<"Степень какого палинома вывести? (1 или 2)\n";
             cin>>res; if (res==1) cout<<"Результат: "<<DEG_P_N(n1).get(); else if (res==2) cout<<"Результат: "<<DEG_P_N(n1).get(); else return error(1); break;
-        case 7: cout<<"Степень какого палинома вывести? (1 или 2)\n";
+        case 7: cout<<"Сократить какой палином? (1 или 2)\n";
             cin>>res; if (res==1) FAC_P_Q(n1); else if (res==2) FAC_P_Q(n2); else return error(1); break;
         case 8: cout<<"Результат умножения: "<<MUL_PP_P(n1,n2).get(); break;
         case 9: cout<<DIV_PP_P(n1,n2).get(); break;
