@@ -306,10 +306,12 @@ public:
     }
     void init(string str)
     {
-        string helper;
+        string helper="";
         int i;
-        for (i=0;str[i]!='/' && i<str.length();i++)
-            helper+=str[i];
+       // cout<<str;
+        for (i=0;str[i]!='/' && i<str.length();i++) {
+            helper += str[i];
+        }
         Zahlen a; Natur b;
         a.init(helper);
         if(i!=str.length())
@@ -386,8 +388,14 @@ public:
     Natur deg;
     void init ()
     {
-        string str, subStr;// subStr- lля записи коефицента и х например, 109x^10
+        string str;
         cin>>str;
+        this->init(str);
+
+    }
+    void init(string str)
+    {
+        string subStr; // subStr- lля записи коефицента и х например, 109x^10
         Ratio x;
         map<Natur,Ratio,Compare> k;
         Natur max, a; ///вместо этой жопы бьем на одночлены и уже из одночленов вынимаем коеф и степень
@@ -403,10 +411,10 @@ public:
                 if (str[j]=='+') j=1; else j=0;
                 posX=subStr.find("x");
                 if (posX!=string::npos) {                               //если x есть - берем коэфицент
-                    if (posX!=1) x.init(subStr.substr(j,posX-j));
-                        else if (j==0) x.init("-1"); else x.init("1"); //но если коэфицента нет - то решает -1 или 1 в него ставить
+                    if (posX!=0 && subStr[0]!='+' && subStr[0]!='-') x.init(subStr.substr(j,posX-j));
+                    else if(subStr[0]=='+' || posX==0) x.init("1");else if(subStr[0]=='-') x.init("-1");//но если коэфицента нет - то решает -1 или 1 в него ставить
                     if (subStr[posX+1]=='^') a.init(subStr.substr(posX+2,subStr.length()-posX-2));
-                        else a.init("1");
+                    else a.init("1");
                     if (COM_NN_D(a,max)==2) max=a;
                 }
                 else  //если икса нет - то это свободный коэфицент
@@ -414,7 +422,7 @@ public:
                     x.init(subStr.substr(j,subStr.length()-j));
                     a.init("0");
                 }
-            j=i;
+                j=i;
             }
             k[a]=x; //push in map
         }
@@ -422,8 +430,8 @@ public:
         if (str[j]=='+') j=1; else j=0;
         posX=subStr.find("x");
         if (posX!=string::npos) {                               //если x есть - берем коэфицент
-            if (posX!=1) x.init(subStr.substr(j,posX-j));
-            else if (j==0) x.init("-1"); else x.init("1"); //но если коэфицента нет - то решает -1 или 1 в него ставить
+            if (posX!=0 && subStr[0]!='+' && subStr[0]!='-') x.init(subStr.substr(j,posX-j));
+            else if(subStr[0]=='+' || posX==0) x.init("1");else if(subStr[0]=='-') x.init("-1"); //но если коэфицента нет - то решает -1 или 1 в него ставить
             if (subStr[posX+1]=='^') a.init(subStr.substr(posX+2,subStr.length()-posX-2));
             else a.init("1");
             if (COM_NN_D(a,max)==2) max=a;
@@ -439,10 +447,10 @@ public:
     }
     Polinomen()
     {
-        this->deg.init("0");
+        deg.init("0");
         Natur x; x.init("0");
         Ratio y; y.init("0");
-        this->koef[x]=y;
+        koef[x]=y;
     }
     void debug() //ф-ия-член для дебага, сюда не смотрим
     {
@@ -503,15 +511,16 @@ int error(int type){  // вывод ошибки
 // Polinomen
 Polinomen ADD_PP_P(Polinomen a,Polinomen b)
 {
-    for(auto& item : a.koef)
+    for(auto& item : b.koef)
     {
+       // cout<<a.koef[item.first].get()<<'+'<<b.koef[item.first].get()<<'\n'; //тут была найдена проблма в init()
        a.koef[item.first]=a.koef[item.first]+b.koef[item.first];
     }
     return a;
 }
 Polinomen SUB_PP_P(Polinomen a,Polinomen b)
 {
-    for(auto& item : a.koef)
+    for(auto& item : b.koef)
     {
         a.koef[item.first]=a.koef[item.first]-b.koef[item.first];
     }
@@ -578,13 +587,52 @@ void FAC_P_Q(Polinomen a)
 
 }
 Polinomen MUL_PP_P(Polinomen a, Polinomen b)
-{/*
-    Polinomen res;
+{
+    Polinomen res,helper;
     for(auto& item : b.koef)
     {
-        res=MUL_PQ_P(a,b.koef[item.first]);
-        MUL_Pxk_P(res,)
-    } */
+        helper=MUL_PQ_P(a,b.koef[item.first]);
+        cout<<"после умножения на коэф"<<helper.get()<<'\n';
+        res=ADD_PP_P(res,MUL_Pxk_P(helper,item.first));
+    }
+    return res;
+}
+Polinomen DIV_PP_P(Polinomen a, Polinomen b)
+{
+    Polinomen delim, res;        ///delim - делитель в текущий момент, остаток - логично, что остаток
+    Ratio mnoj;                  /// множитель,  на который умножаем все коэфиценты делиеля
+    Natur helper;
+    map <Natur,Ratio,Compare> ::iterator it = b.koef.end();
+    it--;
+    cout<<((*it).first).get()<<'\n';
+   /* for(auto& item : a.koef)
+    {
+        if (COM_NN_D(item.first,(*it).first)!=1) {
+            mnoj = a.koef[item.first] / (*it).second;
+            helper.init(SUB_NN_N(item.first,(*it).first));
+            res.koef[helper]=mnoj;
+            delim = MUL_PQ_P(a, mnoj);
+            delim = MUL_Pxk_P(delim, helper);
+            a = SUB_PP_P(a, delim);
+        } else break;
+    }
+    res.checkout();
+    return res; */
+        return a;
+
+}
+short int DER_P_P(Polinomen a)
+{
+    Ratio b; Natur One; One.init("1");
+    for (auto& item : a.koef)
+    {
+        if (item.first.get()[0] == '0') {cout<<"0"; return 0; }
+        else {
+            b.init(item.first.get());
+            cout << "("<< (a.koef[item.first] * b).get() << "x^"<< SUB_NN_N(item.first, One) << ")" << "+";
+        }
+    }
+    return 0;
 }
 //Zahlen
 string ABS_Z_N(Zahlen a)
@@ -897,7 +945,10 @@ int Polynomial()
             cin>>res; if (res==1) cout<<"Результат: "<<DEG_P_N(n1).get(); else if (res==2) cout<<"Результат: "<<DEG_P_N(n1).get(); else return error(1); break;
         case 7: cout<<"Степень какого палинома вывести? (1 или 2)\n";
             cin>>res; if (res==1) FAC_P_Q(n1); else if (res==2) FAC_P_Q(n2); else return error(1); break;
-        case 8: cout<<"Результат умножения: "<<MUL_PP_P(n1,n2).get();
+        case 8: cout<<"Результат умножения: "<<MUL_PP_P(n1,n2).get(); break;
+        case 9: cout<<DIV_PP_P(n1,n2).get(); break;
+        case 12: cout<<"Производную какого палинома вывести? (1 или 2)\n"; cin>>res; cout<<"Производная палинома: ";
+        if (res==1) DER_P_P(n1); else if (res==2) DER_P_P(n1); else return error(1); break;
         default: return error(1);
     }
     return 0;
