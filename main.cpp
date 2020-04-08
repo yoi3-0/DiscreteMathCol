@@ -606,9 +606,10 @@ Polinomen DIV_PP_P(Polinomen a, Polinomen b)
     Polinomen delim, res;        ///delim - делитель в текущий момент, res - результат
     Ratio mnoj;                  /// множитель для умножения делителя
     Natur helper;                  ///бесполезный костыль, но лучше пока не трогат
-     map <Natur,Ratio,Compare> ::iterator it = b.koef.begin(), iter;// it--;
+     map <Natur,Ratio,Compare> ::iterator it = b.koef.begin(), iter;
+     //it--;
      //        cout<<b.get()<<"Первый"<<(*(it)).second.get()<<' ';
-    b.checkout();
+    b.checkout(); b.checkout();                                    ///Вопрос зачем тут два чекаута? Кто ответит - с меня волынский
    // cout<<(*iter).first.get();
     while (COM_NN_D(a.deg,(*it).first)!=1 && a.deg.get()!="0") {
             iter=a.koef.begin();
@@ -631,17 +632,19 @@ Polinomen MOD_PP_P(Polinomen a, Polinomen b)
     Ratio mnoj;                  /// множитель для умножения делителя
     Natur helper;                  ///бесполезный костыль, но лучше пока не трогать
     map <Natur,Ratio,Compare> ::iterator it = b.koef.begin(), iter;// it--;
-    //        cout<<b.get()<<"Первый"<<(*(it)).second.get()<<' ';
-    b.checkout();
+    //it--;
+      //cout<<b.get()<<"Первый"<<' ';
+    b.checkout();  b.checkout();
     // cout<<(*iter).first.get();
     while (COM_NN_D(a.deg,(*it).first)!=1 && a.deg.get()!="0") {
         iter=a.koef.begin();
         mnoj = (*iter).second / (*it).second;
         helper.init(SUB_NN_N((*iter).first,(*it).first));
        // res.koef[helper]=mnoj;
+       //cout<<helper.get()<<'\n';
         delim = MUL_PQ_P(b, mnoj);
         delim = MUL_Pxk_P(delim, helper);
-        // cout<<delim.get()<<' ';
+         //cout<<delim.get()<<'\n';
         a = SUB_PP_P(a, delim);
         a.checkout();
         //cout<<a.get()<<" ";
@@ -669,18 +672,18 @@ Polinomen GCF_PP_P(Polinomen a, Polinomen b)
         a.checkout();
         b.checkout();
     }
-    if (a.get()=="0" || a.get()=="+0" || a.get()=="-0") {
-        for(auto& item : b.koef)
+   if (a.get()=="0" || a.get()=="+0" || a.get()=="-0") {
+        /*for(auto& item : b.koef)
         {
            b.koef[item.first]=assis;
-        }
+        } */
         return b;
     }else
     if (b.get()=="0" || b.get()=="+0" || b.get()=="-0") {
-        for(auto& item : a.koef)
+      /*  for(auto& item : a.koef)
         {
             a.koef[item.first]=assis;
-        }
+        } */
         return a;
     }
     else return helper;
