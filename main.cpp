@@ -606,7 +606,7 @@ Polinomen DIV_PP_P(Polinomen a, Polinomen b)
     Polinomen delim, res;        ///delim - делитель в текущий момент, res - результат
     Ratio mnoj;                  /// множитель для умножения делителя
     Natur helper;                  ///бесполезный костыль, но лучше пока не трогат
-     map <Natur,Ratio,Compare> ::iterator it = b.koef.end(), iter; it--;
+     map <Natur,Ratio,Compare> ::iterator it = b.koef.begin(), iter;// it--;
      //        cout<<b.get()<<"Первый"<<(*(it)).second.get()<<' ';
     b.checkout();
    // cout<<(*iter).first.get();
@@ -630,7 +630,7 @@ Polinomen MOD_PP_P(Polinomen a, Polinomen b)
     Polinomen delim;/// res;        ///delim - делитель в текущий момент, res - результат
     Ratio mnoj;                  /// множитель для умножения делителя
     Natur helper;                  ///бесполезный костыль, но лучше пока не трогать
-    map <Natur,Ratio,Compare> ::iterator it = b.koef.end(), iter; it--;
+    map <Natur,Ratio,Compare> ::iterator it = b.koef.begin(), iter;// it--;
     //        cout<<b.get()<<"Первый"<<(*(it)).second.get()<<' ';
     b.checkout();
     // cout<<(*iter).first.get();
@@ -666,6 +666,8 @@ Polinomen GCF_PP_P(Polinomen a, Polinomen b)
             b=MOD_PP_P(b,a);
             b.checkout();
         }
+        a.checkout();
+        b.checkout();
     }
     if (a.get()=="0" || a.get()=="+0" || a.get()=="-0") {
         for(auto& item : b.koef)
@@ -706,7 +708,14 @@ Polinomen DER_P_P(Polinomen a) //by kill_soap && yoi3.0
     res.checkout();
     return res;
 }
+Polinomen NMR_P_P(Polinomen a)  // wrong answer
+{
+    Polinomen der;
+    der=DER_P_P(a);
+    der=GCF_PP_P(a,der);
+    return DIV_PP_P(a,der);
 
+}
 //Zahlen
 string ABS_Z_N(Zahlen a)
 {
@@ -1022,8 +1031,10 @@ int Polynomial()
         case 9: cout<<"Частное деления "<<DIV_PP_P(n1,n2).get(); break;
         case 10: cout<<"Остаток от деления "<<MOD_PP_P(n1,n2).get();break;
         case 11: cout<<"НОД полиномов "<<GCF_PP_P(n1,n2).get(); break;
-        case 12: cout<<"Производную какого полинома вывести? (1 или 2)\n"; cin>>res; cout<<"Производная палинома: ";
+        case 12: cout<<"Производную какого полинома вывести? (1 или 2)\n"; cin>>res; cout<<"Производная полинома: ";
         if (res==1) cout<<DER_P_P(n1).get(); else if (res==2) cout<<DER_P_P(n2).get(); else return error(1); break;
+        case 13: cout<<"В каком полиноме убрать кратные корни? (1 или 2)\n"; cin>>res; cout<<"Полином-результат: ";
+            if (res==1) cout<<NMR_P_P(n1).get(); else if (res==2) cout<<NMR_P_P(n2).get(); else return error(1); break;
         default: return error(1);
     }
     return 0;
