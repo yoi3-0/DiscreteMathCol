@@ -378,7 +378,7 @@ Ratio operator/(Ratio& left, Ratio& right)
     b.init(RED_Q_Q(b));
     return b;
 }
-
+string MUL_QQ_Q(Ratio, Ratio);
 struct Compare{
     bool operator()(const Natur &a,const Natur &b)const{
         return (COM_NN_D(a,b)==2);
@@ -603,14 +603,14 @@ Polinomen MUL_PP_P(Polinomen a, Polinomen b)
 }
 Polinomen DIV_PP_P(Polinomen a, Polinomen b)
 {
-    Polinomen delim, res;        ///delim - делитель в текущий момент, остаток - логично, что остаток
-    Ratio mnoj;                  /// множитель,  на который умножаем все коэфиценты делиеля
-    Natur helper;
-    map <Natur,Ratio,Compare> ::iterator it = b.koef.end(), iter; it--;
+    Polinomen delim, res;        ///delim - делитель в текущий момент, res - результат
+    Ratio mnoj;                  /// множитель для умножения делителя
+    Natur helper;                  ///бесполезный костыль, но лучше пока не трогат
+     map <Natur,Ratio,Compare> ::iterator it = b.koef.end(), iter; it--;
      //        cout<<b.get()<<"Первый"<<(*(it)).second.get()<<' ';
     b.checkout();
    // cout<<(*iter).first.get();
-    while (COM_NN_D(a.deg,(*it).first)!=1) {
+    while (COM_NN_D(a.deg,(*it).first)!=1 && a.deg.get()!="0") {
             iter=a.koef.begin();
             mnoj = (*iter).second / (*it).second;
             helper.init(SUB_NN_N((*iter).first,(*it).first));
@@ -620,24 +620,93 @@ Polinomen DIV_PP_P(Polinomen a, Polinomen b)
            // cout<<delim.get()<<' ';
             a = SUB_PP_P(a, delim);
             a.checkout();
-            //cout<<a.get()<<" ";
+           // cout<<a.get()<<" ";
     }
     res.checkout();
     return res;
 }
-short int DER_P_P(Polinomen a)
+Polinomen MOD_PP_P(Polinomen a, Polinomen b)
 {
-    Ratio b; Natur One; One.init("1");
-    for (auto& item : a.koef)
+    Polinomen delim;/// res;        ///delim - делитель в текущий момент, res - результат
+    Ratio mnoj;                  /// множитель для умножения делителя
+    Natur helper;                  ///бесполезный костыль, но лучше пока не трогать
+    map <Natur,Ratio,Compare> ::iterator it = b.koef.end(), iter; it--;
+    //        cout<<b.get()<<"Первый"<<(*(it)).second.get()<<' ';
+    b.checkout();
+    // cout<<(*iter).first.get();
+    while (COM_NN_D(a.deg,(*it).first)!=1 && a.deg.get()!="0") {
+        iter=a.koef.begin();
+        mnoj = (*iter).second / (*it).second;
+        helper.init(SUB_NN_N((*iter).first,(*it).first));
+       // res.koef[helper]=mnoj;
+        delim = MUL_PQ_P(b, mnoj);
+        delim = MUL_Pxk_P(delim, helper);
+        // cout<<delim.get()<<' ';
+        a = SUB_PP_P(a, delim);
+        a.checkout();
+        //cout<<a.get()<<" ";
+    }
+    return a;
+}
+Polinomen GCF_PP_P(Polinomen a, Polinomen b)
+{
+    Natur min; min.init("1");
+    Polinomen helper;
+    Ratio assis; assis.init("1");
+    helper.init("1");
+    a.checkout(); b.checkout();
+    while (a.deg.get()!="0" && b.deg.get()!="0")
     {
-        if (item.first.get()[0] == '0') {cout<<"0"; return 0; }
-        else {
-            b.init(item.first.get());
-            cout << "("<< (a.koef[item.first] * b).get() << "x^"<< SUB_NN_N(item.first, One) << ")" << "+";
+        if(COM_NN_D(a.deg,b.deg)==2)
+        {
+            a=MOD_PP_P(a,b);
+            a.checkout();
+        }else
+            {
+            b=MOD_PP_P(b,a);
+            b.checkout();
         }
     }
-    return 0;
+    if (a.get()=="0" || a.get()=="+0" || a.get()=="-0") {
+        for(auto& item : b.koef)
+        {
+           b.koef[item.first]=assis;
+        }
+        return b;
+    }else
+    if (b.get()=="0" || b.get()=="+0" || b.get()=="-0") {
+        for(auto& item : a.koef)
+        {
+            a.koef[item.first]=assis;
+        }
+        return a;
+    }
+    else return helper;
 }
+Polinomen DER_P_P(Polinomen a) //by kill_soap && yoi3.0
+{
+    Polinomen res;
+    map <Natur,Ratio,Compare> resM;
+    Zahlen help;
+    Ratio b; Natur One, helper; One.init("1");
+    for (auto& item : a.koef)
+    {
+        if (item.first.get()!="0")
+        {
+            helper.init(SUB_NN_N(item.first,One));
+            help.init(item.first);
+            b.init(help);
+            b.init(MUL_QQ_Q(b,item.second));
+            resM[helper]=b;
+        }
+    }
+    helper.init("0");
+    res.koef=resM;
+    if(resM[helper].get()=="0") { b.init("0");  res.koef[helper]=b;} ///Чтобы не вывести пустоту, если только свободный член был
+    res.checkout();
+    return res;
+}
+
 //Zahlen
 string ABS_Z_N(Zahlen a)
 {
@@ -928,7 +997,7 @@ int Polynomial()
     Natur k;
     int res;
     string str;
-    cout<<"Введите два палинома. Пример ввода: 10+x^2-10x^3\n";
+    cout<<"Введите два полинома. Пример ввода: 10+x^2-10x^3\n";
     n1.init(); n2.init();
     cout <<"\nВыбирите функцию\n" <<"1 - Сложение многочленов\n" <<"2 - Вычитание многочленов\n"<< "3 - Умножение многочлена на рациональное число\n"
     <<"4 - Умножение многочлена на x^k\n" <<"5 - Старший коэффициент многочлена\n" <<"6 - Степень многочлена\n" <<"7 - Вынесение из многочлена НОК знаменателей коэффициентов и НОД числителей\n"
@@ -943,16 +1012,18 @@ int Polynomial()
         case 4:cout<<"Введите натуральное число - степень x для умножения\n"; cin>>str; k.init(str); cout<<"Какой палином умножаем? (1 или 2)\n";
             cin>>res; if (res==1) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get(); else if (res==2) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get();
         else return error(1); break;
-        case 5: cout<<"Старший коэфицент какого палинома вывести? (1 или 2)\n";
+        case 5: cout<<"Старший коэфицент какого полинома вывести? (1 или 2)\n";
             cin>>res; if (res==1) cout<<"Результат: "<<LED_P_Q(n1).get(); else if (res==2) cout<<"Результат: "<<LED_P_Q(n1).get(); else return error(1); break;
-        case 6: cout<<"Степень какого палинома вывести? (1 или 2)\n";
+        case 6: cout<<"Степень какого полинома вывести? (1 или 2)\n";
             cin>>res; if (res==1) cout<<"Результат: "<<DEG_P_N(n1).get(); else if (res==2) cout<<"Результат: "<<DEG_P_N(n1).get(); else return error(1); break;
-        case 7: cout<<"Сократить какой палином? (1 или 2)\n";
+        case 7: cout<<"Сократить какой полином? (1 или 2)\n";
             cin>>res; if (res==1) FAC_P_Q(n1); else if (res==2) FAC_P_Q(n2); else return error(1); break;
         case 8: cout<<"Результат умножения: "<<MUL_PP_P(n1,n2).get(); break;
-        case 9: cout<<DIV_PP_P(n1,n2).get(); break;
-        case 12: cout<<"Производную какого палинома вывести? (1 или 2)\n"; cin>>res; cout<<"Производная палинома: ";
-        if (res==1) DER_P_P(n1); else if (res==2) DER_P_P(n1); else return error(1); break;
+        case 9: cout<<"Частное деления "<<DIV_PP_P(n1,n2).get(); break;
+        case 10: cout<<"Остаток от деления "<<MOD_PP_P(n1,n2).get();break;
+        case 11: cout<<"НОД полиномов "<<GCF_PP_P(n1,n2).get(); break;
+        case 12: cout<<"Производную какого полинома вывести? (1 или 2)\n"; cin>>res; cout<<"Производная палинома: ";
+        if (res==1) cout<<DER_P_P(n1).get(); else if (res==2) cout<<DER_P_P(n2).get(); else return error(1); break;
         default: return error(1);
     }
     return 0;
