@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include<locale.h>
 #include <utility>
 #include <map>
 
