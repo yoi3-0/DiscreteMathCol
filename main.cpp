@@ -19,7 +19,7 @@ public:
         this->init(str);
     }
     void init(string str){  //получение числа
-        for (size_t i=0;i<str.length(); i++ ) if(!isdigit(str[i])){ this->ch="inv"; return;}
+       // for (size_t i=0;i<str.length(); i++ ) if(!isdigit(str[i])){ this->ch="inv"; return;}
         this->ch=str;
     }
     explicit Natur(string i="0"): ch(move(i)){};
@@ -111,6 +111,7 @@ Natur operator/(Natur& left, Natur& right) {
     while (COM_NN_D(delim,right)==2 || COM_NN_D(delim,right)==0)
     {
         helper.init(DIV_NN_Dk(delim, right)); //первая цифра деления на 10^k
+       // cout<<helper.get()<<" - первая цифра деления";
        // cout<<"Число="<<helper.get()<<'\n';
         result = result + helper;
       //  cout<<"Итог="<<result.get()<<'\n';
@@ -366,7 +367,9 @@ Ratio operator*(Ratio& left, Ratio& right)
     if(a.get()=="-0" || b.get()=="-0") return res;
     c=left.getZn(); d=right.getZn();
     a=a*b;
+    //cout<<"Числите"<<a.get();
     c=c*d;
+    //cout<<"  Знамен`"<<c.get();
     res.init(a,c);
     res.init(RED_Q_Q(res));
     return res;
@@ -884,9 +887,11 @@ string RED_Q_Q(Ratio a)
     Natur helper, helper2;
     Zahlen helperZ1, helperZ2;
     helper.init(GCF_NN_N(a.getCh().absN(),a.getZn()));
+    //cout<<"Нод"<<helper.get();
     helperZ2=a.getCh();
     helperZ1.init(helper);
     helper2=a.getZn();
+    //cout<<"268/4=";
     a.init(helperZ2/helperZ1,helper2/helper);
     if (a.getCh().get()=="0") a.init("0");
     return a.get();
@@ -920,7 +925,7 @@ int Naturalis() //работаем с натуральными
     string resStr;
     cout<<"Введите два натуральных числа"<<'\n';
     n1.init(); n2.init();
-    if (n1.get()=="inv" || n2.get()=="inv") return error(2);
+    //if (n1.get()=="inv" || n2.get()=="inv") return error(2);
     int funkType;
     cout<<"\nВыбирите функцию\n"<<"1 - сравнить\n"<<"2 - проверка на ноль\n"<<"3 - добавить 1\n"
     <<"4 - Сложить\n"<<"5 - вычесть (из большего)\n"<<"6 - умножить на число\n"<<"7 - умножить на 10^k\n"
@@ -965,7 +970,7 @@ int Integer()
     Zahlen n1,n2;
     cout<<"Введите два целых числа"<<'\n';
     n1.init(); n2.init();
-    if (n1.absN().get()=="inv" || n2.absN().get()=="inv") return error(2);
+    //if (n1.absN().get()=="inv" || n2.absN().get()=="inv") return error(2);
     cout << "\nВыбирите функцию\n"<< "1 - модуль числа\n"<< "2 - проверить на знак\n"<< "3 - умножить на -1\n"
      <<"4 - сложить\n"<< "5 - вычесть\n"
     <<"6 - перемножить\n" <<"7 - частное от деления \n" << "8 - остаток от деления\n";
@@ -996,7 +1001,7 @@ int Rational_Numbers()
     cout<<"Введите два рациональных числа (Пример: -1/2)"<<'\n';
     Ratio n2,n1;
     n1.init();n2.init();
-    if (n1.getCh().absN().get()=="inv" || n2.getCh().absN().get()=="inv" || n1.getZn().get()=="inv" || n2.getZn().get()=="inv")
+   // if (n1.getCh().absN().get()=="inv" || n2.getCh().absN().get()=="inv" || n1.getZn().get()=="inv" || n2.getZn().get()=="inv")
         return error(2);
     cout <<"\nВыбирите функцию\n" <<"1 - сокращение дроби\n"<< "2 - проверка на целое\n" <<"3 - Сложение дробей\n" <<"4 - Вычитание дробей\n"
     << "5 - Умножение дробей\n"<<"6 - Деление дробей\n";
@@ -1060,7 +1065,7 @@ int Polynomial()
 int main() {
     setlocale(LC_ALL, "Rus");
     int mode, isOk;
-    cout <<"Выбери тип переменных\n"<< "1 - Натуральные\n" <<"2 - Целые\n" <<"3 - Рациональная числа\n" <<"4 - Многочлен с рациональными коэффициентами\n";
+    cout <<"Выбери тип переменных\n"<< "1 - Натуральные числа\n" <<"2 - Целые числа\n" <<"3 - Рациональные числа\n" <<"4 - Многочлен с рациональными коэффициентами\n";
     cin>> mode;
     switch (mode) {
         case 1: isOk = Naturalis(); break;
