@@ -401,7 +401,7 @@ public:
         string subStr; // subStr- lля записи коефицента и х например, 109x^10
         Ratio x;
         map<Natur,Ratio,Compare> k;
-        Natur max, a; ///вместо этой жопы бьем на одночлены и уже из одночленов вынимаем коеф и степень
+        Natur max, a; ///вместо этой ж0пPl бьем на одночлены и уже из одночленов вынимаем коеф и степень
         max.init("0");
         int j=0, i;
         string::size_type posZnak,posX; //posZnak -позиция знака,  posX - позиция X
@@ -428,6 +428,7 @@ public:
                 j=i;
             }
             k[a]=x; //push in map
+           // cout<<"k["<<a.get()<<"]="<<x.get()<<'\n';
         }
         subStr=str.substr(j,i-j);
         if (str[j]=='+') j=1; else j=0;
@@ -445,6 +446,7 @@ public:
             a.init("0");
         }
         k[a]=x; //push in map
+        //cout<<"k["<<a.get()<<"]="<<x.get()<<'\n';
         this->deg=max;
         this->koef=k;
     }
@@ -532,9 +534,10 @@ Polinomen SUB_PP_P(Polinomen a,Polinomen b)
 Polinomen MUL_PQ_P(Polinomen a,Ratio b)
 {
     a.checkout();
+   // cout<<a.get()<<" lol\n";
     for(auto& item : a.koef)
     {
-       if (a.koef[item.first].get()!="0") a.koef[item.first]=a.koef[item.first]*b;
+       if (a.koef[item.first].getCh().absN().get()!="0") a.koef[item.first]=a.koef[item.first]*b;
         //cout<<a.koef[item.first].get()<<' ';
     }
     return a;
@@ -610,19 +613,21 @@ Polinomen DIV_PP_P(Polinomen a, Polinomen b)
      map <Natur,Ratio,Compare> ::iterator it = b.koef.begin(), iter;
      //it--;
      //        cout<<b.get()<<"Первый"<<(*(it)).second.get()<<' ';
-    b.checkout(); b.checkout();                                    ///Вопрос зачем тут два чекаута? Кто ответит - с меня волынский
+    b.checkout();
    // cout<<(*iter).first.get();
-    while (COM_NN_D(a.deg,(*it).first)!=1 && a.deg.get()!="0") {
-            iter=a.koef.begin();
-            mnoj = (*iter).second / (*it).second;
-            helper.init(SUB_NN_N((*iter).first,(*it).first));
-            res.koef[helper]=mnoj;
-            delim = MUL_PQ_P(b, mnoj);
-            delim = MUL_Pxk_P(delim, helper);
-           // cout<<delim.get()<<' ';
-            a = SUB_PP_P(a, delim);
-            a.checkout();
-           // cout<<a.get()<<" ";
+    while (COM_NN_D(a.deg,b.deg)!=1 && a.deg.get()!="0") {
+        a.checkout();
+        if (COM_NN_D(a.deg,b.deg)==1) break;
+        //cout<<"многочлен "<<a.get()<<" ";
+        iter=a.koef.begin();
+        mnoj = (*iter).second / b.koef[b.deg];
+        helper.init(SUB_NN_N((*iter).first,b.deg));
+        res.koef[helper]=mnoj;
+        //cout<<helper.get()<<'\n';
+        delim = MUL_PQ_P(b, mnoj);
+        delim = MUL_Pxk_P(delim, helper);
+        //cout<<delim.get()<<'\n';
+        a = SUB_PP_P(a, delim);
     }
     res.checkout();
     return res;
@@ -635,21 +640,25 @@ Polinomen MOD_PP_P(Polinomen a, Polinomen b)
     map <Natur,Ratio,Compare> ::iterator it = b.koef.begin(), iter;// it--;
     //it--;
       //cout<<b.get()<<"Первый"<<' ';
-    b.checkout();  b.checkout();
+    b.checkout();
     // cout<<(*iter).first.get();
-    while (COM_NN_D(a.deg,(*it).first)!=1 && a.deg.get()!="0") {
-        iter=a.koef.begin();
-        mnoj = (*iter).second / (*it).second;
-        helper.init(SUB_NN_N((*iter).first,(*it).first));
-       // res.koef[helper]=mnoj;
-       //cout<<helper.get()<<'\n';
-        delim = MUL_PQ_P(b, mnoj);
-        delim = MUL_Pxk_P(delim, helper);
-         //cout<<delim.get()<<'\n';
-        a = SUB_PP_P(a, delim);
-        a.checkout();
-        //cout<<a.get()<<" ";
+    while (COM_NN_D(a.deg,b.deg)!=1 && a.deg.get()!="0") {
+        while (COM_NN_D(a.deg,b.deg)!=1 && a.deg.get()!="0") {
+            a.checkout();
+            if (COM_NN_D(a.deg,b.deg)==1) break;
+            //cout<<"многочлен "<<a.get()<<" ";
+            iter=a.koef.begin();
+            mnoj = (*iter).second / b.koef[b.deg];
+            helper.init(SUB_NN_N((*iter).first,b.deg));
+            //res.koef[helper]=mnoj;
+            //cout<<helper.get()<<'\n';
+            delim = MUL_PQ_P(b, mnoj);
+            delim = MUL_Pxk_P(delim, helper);
+            //cout<<delim.get()<<'\n';
+            a = SUB_PP_P(a, delim);
+        }
     }
+    a.checkout();
     return a;
 }
 Polinomen GCF_PP_P(Polinomen a, Polinomen b)
@@ -1021,14 +1030,14 @@ int Polynomial()
         case 1: cout<<"Результат сложения: "<<ADD_PP_P(n1,n2).get(); break;
         case 2: cout<<"Результат вычитания: "<<SUB_PP_P(n1,n2).get(); break;
         case 3: cout<<"Введите рациональное число для умножения\n"; cin>>str; x.init(str); cout<<"Какой палином умножаем? (1 или 2)\n";
-        cin>>res; if (res==1) cout<<"Результат: "<<MUL_PQ_P(n1,x).get(); else if (res==2) cout<<"Результат: "<<MUL_PQ_P(n1,x).get(); else return error(1); break;
+        cin>>res; if (res==1) cout<<"Результат: "<<MUL_PQ_P(n1,x).get(); else if (res==2) cout<<"Результат: "<<MUL_PQ_P(n2,x).get(); else return error(1); break;
         case 4:cout<<"Введите натуральное число - степень x для умножения\n"; cin>>str; k.init(str); cout<<"Какой палином умножаем? (1 или 2)\n";
-            cin>>res; if (res==1) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get(); else if (res==2) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get();
+            cin>>res; if (res==1) cout<<"Результат: "<<MUL_Pxk_P(n1,k).get(); else if (res==2) cout<<"Результат: "<<MUL_Pxk_P(n2,k).get();
         else return error(1); break;
         case 5: cout<<"Старший коэфицент какого полинома вывести? (1 или 2)\n";
-            cin>>res; if (res==1) cout<<"Результат: "<<LED_P_Q(n1).get(); else if (res==2) cout<<"Результат: "<<LED_P_Q(n1).get(); else return error(1); break;
+            cin>>res; if (res==1) cout<<"Результат: "<<LED_P_Q(n1).get(); else if (res==2) cout<<"Результат: "<<LED_P_Q(n2).get(); else return error(1); break;
         case 6: cout<<"Степень какого полинома вывести? (1 или 2)\n";
-            cin>>res; if (res==1) cout<<"Результат: "<<DEG_P_N(n1).get(); else if (res==2) cout<<"Результат: "<<DEG_P_N(n1).get(); else return error(1); break;
+            cin>>res; if (res==1) cout<<"Результат: "<<DEG_P_N(n1).get(); else if (res==2) cout<<"Результат: "<<DEG_P_N(n2).get(); else return error(1); break;
         case 7: cout<<"Сократить какой полином? (1 или 2)\n";
             cin>>res; if (res==1) FAC_P_Q(n1); else if (res==2) FAC_P_Q(n2); else return error(1); break;
         case 8: cout<<"Результат умножения: "<<MUL_PP_P(n1,n2).get(); break;
