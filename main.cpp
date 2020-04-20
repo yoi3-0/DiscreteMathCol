@@ -1001,8 +1001,8 @@ int Rational_Numbers()
     cout<<"Введите два рациональных числа (Пример: -1/2)"<<'\n';
     Ratio n2,n1;
     n1.init();n2.init();
-   // if (n1.getCh().absN().get()=="inv" || n2.getCh().absN().get()=="inv" || n1.getZn().get()=="inv" || n2.getZn().get()=="inv")
-        return error(2);
+    /*if (n1.getCh().absN().get()=="inv" || n2.getCh().absN().get()=="inv" || n1.getZn().get()=="inv" || n2.getZn().get()=="inv")
+        return error(2); */
     cout <<"\nВыбирите функцию\n" <<"1 - сокращение дроби\n"<< "2 - проверка на целое\n" <<"3 - Сложение дробей\n" <<"4 - Вычитание дробей\n"
     << "5 - Умножение дробей\n"<<"6 - Деление дробей\n";
     cin>> funkType;
