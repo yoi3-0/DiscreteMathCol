@@ -5,7 +5,7 @@
 #include <map>
 
 using namespace std;
-string errCode[]={"Действие выполнено успешно","Invalid input",};
+string errCode[]={"Действие выполнено успешно","Invalid input", "Давайте без стрельбы в колено"};
 /*
  * Классы чисел
  */
@@ -16,9 +16,10 @@ public:
     void init(){  //получение числа
         string str;
         cin>>str;
-        this->ch=str;
+        this->init(str);
     }
     void init(string str){  //получение числа
+        for (size_t i=0;i<str.length(); i++ ) if(!isdigit(str[i])){ this->ch="inv"; return;}
         this->ch=str;
     }
     explicit Natur(string i="0"): ch(move(i)){};
@@ -404,7 +405,7 @@ public:
         Natur max, a; ///вместо этой ж0пPl бьем на одночлены и уже из одночленов вынимаем коеф и степень
         max.init("0");
         int j=0, i;
-        string::size_type posZnak,posX; //posZnak -позиция знака,  posX - позиция X
+        string::size_type posZnak,posX; ///posZnak -позиция знака,  posX - позиция X
         for (i=0;i<str.length();i++)
         {
             if (str[i]=='+' || str[i]=='-')
@@ -413,7 +414,7 @@ public:
                 subStr=str.substr(j,i-j);
                 if (str[j]=='+') j=1; else j=0;
                 posX=subStr.find("x");
-                if (posX!=string::npos) {                               //если x есть - берем коэфицент
+                if (posX!=string::npos) {                               ///если x есть - берем коэфицент
                     if ((posX!=0 && posX!=1 )||  (posX==1 && subStr[0]!='+' && subStr[0]!='-')) x.init(subStr.substr(j,posX-j));
                     else if(subStr[0]=='+' || posX==0) x.init("1");else if(subStr[0]=='-') x.init("-1");//но если коэфицента нет - то решает -1 или 1 в него ставить
                     if (subStr[posX+1]=='^') a.init(subStr.substr(posX+2,subStr.length()-posX-2));
@@ -919,6 +920,7 @@ int Naturalis() //работаем с натуральными
     string resStr;
     cout<<"Введите два натуральных числа"<<'\n';
     n1.init(); n2.init();
+    if (n1.get()=="inv" || n2.get()=="inv") return error(2);
     int funkType;
     cout<<"\nВыбирите функцию\n"<<"1 - сравнить\n"<<"2 - проверка на ноль\n"<<"3 - добавить 1\n"
     <<"4 - Сложить\n"<<"5 - вычесть (из большего)\n"<<"6 - умножить на число\n"<<"7 - умножить на 10^k\n"
@@ -963,6 +965,7 @@ int Integer()
     Zahlen n1,n2;
     cout<<"Введите два целых числа"<<'\n';
     n1.init(); n2.init();
+    if (n1.absN().get()=="inv" || n2.absN().get()=="inv") return error(2);
     cout << "\nВыбирите функцию\n"<< "1 - модуль числа\n"<< "2 - проверить на знак\n"<< "3 - умножить на -1\n"
      <<"4 - сложить\n"<< "5 - вычесть\n"
     <<"6 - перемножить\n" <<"7 - частное от деления \n" << "8 - остаток от деления\n";
@@ -993,6 +996,8 @@ int Rational_Numbers()
     cout<<"Введите два рациональных числа (Пример: -1/2)"<<'\n';
     Ratio n2,n1;
     n1.init();n2.init();
+    if (n1.getCh().absN().get()=="inv" || n2.getCh().absN().get()=="inv" || n1.getZn().get()=="inv" || n2.getZn().get()=="inv")
+        return error(2);
     cout <<"\nВыбирите функцию\n" <<"1 - сокращение дроби\n"<< "2 - проверка на целое\n" <<"3 - Сложение дробей\n" <<"4 - Вычитание дробей\n"
     << "5 - Умножение дробей\n"<<"6 - Деление дробей\n";
     cin>> funkType;
